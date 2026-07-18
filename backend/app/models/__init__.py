@@ -128,6 +128,7 @@ class ListingImage(Base):
     listing_id: Mapped[int] = mapped_column(ForeignKey("listings.id", ondelete="CASCADE"), nullable=False, index=True)
     url: Mapped[str] = mapped_column(String(500), nullable=False)
     alt_text: Mapped[str | None] = mapped_column(String(255))
+    public_id: Mapped[str | None] = mapped_column(String(255))
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
     listing: Mapped["Listing"] = relationship(back_populates="images")

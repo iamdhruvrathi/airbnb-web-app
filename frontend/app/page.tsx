@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { Navbar } from "@/components/layout/navbar";
-import { Footer } from "@/components/layout/footer";
-import { Providers } from "@/components/providers";
 import { CategoryRow } from "@/features/home/category-row";
 import { SearchBar } from "@/features/search/search-bar";
 import { ListingGrid } from "@/features/listings/listing-grid";
@@ -25,11 +22,15 @@ export default function HomePage() {
           <p className="text-neutral-600 dark:text-neutral-400">
             Discover unique homes and experiences around the world
           </p>
-          <SearchBar />
+          <Suspense fallback={<div className="h-16" />}>
+            <SearchBar />
+          </Suspense>
         </div>
       </section>
 
-      <CategoryRow />
+      <Suspense fallback={<div className="h-16" />}>
+        <CategoryRow />
+      </Suspense>
 
       <section className="mx-auto max-w-7xl px-4 py-8 md:px-6">
         <Suspense fallback={<ListingGridSkeleton />}>

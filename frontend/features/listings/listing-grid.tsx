@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { ListingCardItem } from "@/features/listings/listing-card";
 import { ListingGridSkeleton } from "@/features/listings/listing-skeleton";
 import { FilterPanel } from "@/features/search/filter-panel";
@@ -21,15 +22,46 @@ export function ListingGrid() {
     min_price: searchParams.get("min_price") ? Number(searchParams.get("min_price")) : undefined,
     max_price: searchParams.get("max_price") ? Number(searchParams.get("max_price")) : undefined,
     property_type: (searchParams.get("property_type") as PropertyType) ?? undefined,
-    amenity_ids: searchParams.get("amenity_ids") ? searchParams.get("amenity_ids")!.split(",").map(Number) : undefined,
+    amenity_ids: searchParams.get("amenity_ids") ?? undefined,
     min_bedrooms: searchParams.get("min_bedrooms") ? Number(searchParams.get("min_bedrooms")) : undefined,
-    page: searchParams.get("page") ? Number(searchParams.get("page")) : 1,
   };
 
-  const { data, isLoading, isError, error } = useQuery({
+  const {
+    data,
+    isLoading,
+    isError,
+    error,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage
+  } = useInfiniteQuery({
     queryKey: ["listings", params],
-    queryFn: () => listingsApi.search(params),
+    queryFn: ({ pageParam = 1 }) => listingsApi.search({ ...params, page: pageParam }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.meta.page < lastPage.meta.total_pages) {
+        return lastPage.meta.page + 1;
+      }
+      return undefined;
+    }
   });
+
+  const observerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = observerRef.current;
+    if (!el || !hasNextPage) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   if (isLoading) return <ListingGridSkeleton />;
   if (isError) {
@@ -41,8 +73,8 @@ export function ListingGrid() {
     );
   }
 
-  const listings = data?.items ?? [];
-  const meta = data?.meta;
+  const listings = data?.pages.flatMap((page) => page.items) ?? [];
+  const meta = data?.pages[0]?.meta;
 
   return (
     <div className="space-y-6">
@@ -69,36 +101,17 @@ export function ListingGrid() {
         </div>
       )}
 
-      {meta && meta.total_pages > 1 && (
-        <Pagination currentPage={meta.page} totalPages={meta.total_pages} />
-      )}
-    </div>
-  );
-}
-
-function Pagination({ currentPage, totalPages }: { currentPage: number; totalPages: number }) {
-  const searchParams = useSearchParams();
-
-  function pageUrl(page: number) {
-    const params = new URLSearchParams(searchParams.toString());
-    params.set("page", String(page));
-    return `/?${params.toString()}`;
-  }
-
-  return (
-    <div className="flex items-center justify-center gap-2 pt-4">
-      {currentPage > 1 && (
-        <Button variant="outline" asChild>
-          <a href={pageUrl(currentPage - 1)}>Previous</a>
-        </Button>
-      )}
-      <span className="px-4 text-sm text-neutral-500">
-        Page {currentPage} of {totalPages}
-      </span>
-      {currentPage < totalPages && (
-        <Button variant="outline" asChild>
-          <a href={pageUrl(currentPage + 1)}>Next</a>
-        </Button>
+      {hasNextPage && (
+        <div ref={observerRef} className="flex justify-center pt-8">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={() => fetchNextPage()}
+            disabled={isFetchingNextPage}
+          >
+            {isFetchingNextPage ? "Loading more..." : "Load more"}
+          </Button>
+        </div>
       )}
     </div>
   );

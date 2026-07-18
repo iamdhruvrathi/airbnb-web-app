@@ -7,13 +7,10 @@ import {
   Heart,
   Home,
   Menu,
-  Moon,
   Plane,
   Plus,
-  Sun,
   User,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -24,7 +21,6 @@ import { SearchBar } from "@/features/search/search-bar";
 export function Navbar() {
   const pathname = usePathname();
   const { user, users, switchUser } = useAuth();
-  const { theme, setTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
   const hideSearch = pathname.startsWith("/listings/") && pathname.split("/").length > 2;
 
@@ -51,16 +47,6 @@ export function Navbar() {
               </Button>
             </Link>
           )}
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="rounded-full"
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            aria-label="Toggle theme"
-          >
-            {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </Button>
 
           <Link href="/wishlist">
             <Button variant="ghost" size="icon" className="rounded-full">

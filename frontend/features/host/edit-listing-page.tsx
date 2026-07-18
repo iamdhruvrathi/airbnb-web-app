@@ -37,7 +37,7 @@ export function EditListingPageClient({ listingId }: EditListingPageProps) {
           bedrooms: listing.bedrooms,
           beds: listing.beds,
           bathrooms: listing.bathrooms,
-          image_url: listing.images[0]?.url ?? "",
+          images: listing.images.map(img => ({ url: img.url, alt_text: img.alt_text ?? undefined })),
           amenity_ids: listing.amenities.map((a) => a.id),
         }}
       />

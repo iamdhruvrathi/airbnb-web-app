@@ -99,6 +99,7 @@ class ListingRepository:
                     func.lower(Listing.city).like(term),
                     func.lower(Listing.country).like(term),
                     func.lower(Listing.description).like(term),
+                    func.lower(Listing.address).like(term),
                 )
             )
 

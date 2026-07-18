@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { amenitiesApi, listingsApi } from "@/services";
 import type { ListingCreatePayload, PropertyType } from "@/types";
 import { useAuth } from "@/features/auth/auth-provider";
+import { ImageUpload } from "@/components/ui/image-upload";
 
 const listingSchema = z.object({
   title: z.string().min(3),
@@ -28,7 +29,11 @@ const listingSchema = z.object({
   bedrooms: z.coerce.number().min(0).max(20),
   beds: z.coerce.number().min(1).max(20),
   bathrooms: z.coerce.number().min(0.5).max(20),
-  image_url: z.string().url(),
+  images: z.array(z.object({
+    url: z.string().url(),
+    public_id: z.string().optional(),
+    alt_text: z.string().optional()
+  })).min(1, "At least one image is required"),
   amenity_ids: z.array(z.number()).default([]),
 });
 
@@ -50,7 +55,7 @@ export function ListingForm({ listingId, defaultValues }: ListingFormProps) {
   });
 
   const form = useForm<ListingFormValues>({
-    resolver: zodResolver(listingSchema),
+    resolver: zodResolver(listingSchema) as any,
     defaultValues: {
       property_type: "apartment",
       cleaning_fee: 0,
@@ -61,6 +66,7 @@ export function ListingForm({ listingId, defaultValues }: ListingFormProps) {
       bathrooms: 1,
       latitude: 40.7128,
       longitude: -74.006,
+      images: [],
       amenity_ids: [],
       ...defaultValues,
     },
@@ -98,7 +104,7 @@ export function ListingForm({ listingId, defaultValues }: ListingFormProps) {
       bedrooms: values.bedrooms,
       beds: values.beds,
       bathrooms: values.bathrooms,
-      images: [{ url: values.image_url, alt_text: values.title }],
+      images: values.images.map((img, i) => ({ ...img, sort_order: i, alt_text: img.alt_text || values.title })),
       amenity_ids: values.amenity_ids,
     };
 
@@ -130,8 +136,17 @@ export function ListingForm({ listingId, defaultValues }: ListingFormProps) {
         <Field label="City"><Input {...form.register("city")} /></Field>
         <Field label="Country"><Input {...form.register("country")} /></Field>
         <Field label="Address"><Input {...form.register("address")} /></Field>
-        <Field label="Image URL"><Input {...form.register("image_url")} placeholder="https://..." /></Field>
       </div>
+
+      <Field label="Images">
+        <ImageUpload
+          value={form.watch("images") || []}
+          onChange={(val) => form.setValue("images", val, { shouldValidate: true })}
+        />
+        {form.formState.errors.images && (
+          <p className="text-sm text-red-500">{form.formState.errors.images.message}</p>
+        )}
+      </Field>
 
       <div className="grid gap-4 md:grid-cols-3">
         <Field label="Price/night"><Input type="number" {...form.register("price_per_night")} /></Field>

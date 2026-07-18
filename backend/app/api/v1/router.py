@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, UploadFile, File
+import cloudinary.uploader
+import cloudinary.api
 from sqlalchemy.orm import Session
 
 from app.core.deps import get_current_user, get_optional_user
@@ -233,3 +235,38 @@ def host_listing_bookings(
         raise ForbiddenError()
     bookings = BookingRepository(db).get_by_listing(listing_id)
     return [BookingService(db)._to_response(b) for b in bookings]
+
+
+@router.post("/upload/images")
+def upload_images(
+    files: list[UploadFile] = File(...),
+    user: User = Depends(get_current_user),
+):
+    from app.utils.exceptions import AppException
+
+    if not files:
+        raise AppException("No files provided")
+
+    if len(files) > 10:
+        raise AppException("Maximum 10 images allowed per upload")
+
+    uploaded = []
+    for f in files:
+        if not f.content_type.startswith("image/"):
+            raise AppException(f"File {f.filename} is not a supported image type")
+
+        if f.size and f.size > 10 * 1024 * 1024:
+            raise AppException(f"File {f.filename} exceeds the 10MB limit")
+        
+        try:
+            result = cloudinary.uploader.upload(f.file, folder="airbnb_clone")
+            uploaded.append({
+                "url": result.get("secure_url"),
+                "public_id": result.get("public_id"),
+                "alt_text": f.filename
+            })
+        except Exception as e:
+            raise AppException(f"Cloudinary upload failed: {str(e)}")
+
+    return {"images": uploaded}
+

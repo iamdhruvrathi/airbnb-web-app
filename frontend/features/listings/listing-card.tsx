@@ -1,6 +1,6 @@
 "use client";
 
-import Image from "next/image";
+import { FallbackImage } from "@/components/ui/fallback-image";
 import Link from "next/link";
 import { Heart, Star } from "lucide-react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -33,7 +33,7 @@ export function ListingCardItem({ listing }: ListingCardProps) {
     <Link href={`/listings/${listing.id}`} className="group block">
       <div className="relative mb-3 aspect-square overflow-hidden rounded-xl bg-neutral-200">
         {listing.primary_image ? (
-          <Image
+          <FallbackImage
             src={listing.primary_image}
             alt={listing.title}
             fill

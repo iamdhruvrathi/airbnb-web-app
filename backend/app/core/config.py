@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     DEFAULT_PAGE_SIZE: int = 12
     MAX_PAGE_SIZE: int = 50
 
+    CLOUDINARY_CLOUD_NAME: str | None = None
+    CLOUDINARY_API_KEY: str | None = None
+    CLOUDINARY_API_SECRET: str | None = None
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.CORS_ORIGINS.split(",") if origin.strip()]

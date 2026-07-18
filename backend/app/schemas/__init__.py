@@ -80,12 +80,14 @@ class ListingImageResponse(BaseModel):
     url: str
     alt_text: str | None = None
     sort_order: int
+    public_id: str | None = None
 
 
 class ListingImageCreate(BaseModel):
     url: str
     alt_text: str | None = None
     sort_order: int = 0
+    public_id: str | None = None
 
 
 class ListingBase(BaseModel):

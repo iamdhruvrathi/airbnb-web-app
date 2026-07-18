@@ -1,14 +1,12 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { differenceInDays, format, parseISO } from "date-fns";
+import { differenceInDays, format, parseISO, isValid } from "date-fns";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { useState } from "react";
 import type { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,8 +29,8 @@ export function BookingWidget({ listing }: BookingWidgetProps) {
   const [guests, setGuests] = useState(1);
   const [showCheckout, setShowCheckout] = useState(false);
 
-  const checkIn = date?.from ? format(date.from, "yyyy-MM-dd") : "";
-  const checkOut = date?.to ? format(date.to, "yyyy-MM-dd") : "";
+  const checkIn = date?.from && isValid(date.from) ? format(date.from, "yyyy-MM-dd") : "";
+  const checkOut = date?.to && isValid(date.to) ? format(date.to, "yyyy-MM-dd") : "";
 
   const { data: unavailable = [] } = useQuery({
     queryKey: ["availability", listing.id],
@@ -62,16 +60,39 @@ export function BookingWidget({ listing }: BookingWidgetProps) {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  const nights = checkIn && checkOut ? differenceInDays(parseISO(checkOut), parseISO(checkIn)) : 0;
-  const isValid = nights > 0 && guests >= 1 && guests <= listing.max_guests;
-
   function isDateUnavailable(dateStr: string): boolean {
+    if (!dateStr) return false;
     const date = parseISO(dateStr);
+    if (!isValid(date)) return false;
     return unavailable.some((range) => {
       const start = parseISO(range.check_in);
       const end = parseISO(range.check_out);
-      return date >= start && date < end;
+      if (!isValid(start) || !isValid(end)) return false;
+      return date > start && date < end;
     });
+  }
+
+  const isOverlap = unavailable.some((range) => {
+    if (!checkIn || !checkOut) return false;
+    const start = parseISO(range.check_in);
+    const end = parseISO(range.check_out);
+    const myStart = parseISO(checkIn);
+    const myEnd = parseISO(checkOut);
+    if (!isValid(start) || !isValid(end) || !isValid(myStart) || !isValid(myEnd)) return false;
+    return myStart < end && myEnd > start;
+  });
+
+  const parsedCheckIn = checkIn ? parseISO(checkIn) : null;
+  const parsedCheckOut = checkOut ? parseISO(checkOut) : null;
+  const nights = parsedCheckIn && parsedCheckOut && isValid(parsedCheckIn) && isValid(parsedCheckOut)
+    ? differenceInDays(parsedCheckOut, parsedCheckIn)
+    : 0;
+  const isValidSelection = nights > 0 && guests >= 1 && guests <= listing.max_guests && !isOverlap;
+
+  function formatSafeDate(dateStr: string, fmt: string) {
+    if (!dateStr) return "TBD";
+    const d = parseISO(dateStr);
+    return isValid(d) ? format(d, fmt) : "TBD";
   }
 
   return (
@@ -87,37 +108,33 @@ export function BookingWidget({ listing }: BookingWidgetProps) {
             <div className="border-b border-neutral-300 dark:border-neutral-700">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button
-                    variant={"ghost"}
-                    className={cn(
-                      "w-full justify-start text-left font-normal h-14 rounded-none",
-                      !date && "text-muted-foreground"
-                    )}
-                  >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {date?.from ? (
-                      date.to ? (
-                        <>
-                          {format(date.from, "LLL dd, y")} -{" "}
-                          {format(date.to, "LLL dd, y")}
-                        </>
-                      ) : (
-                        format(date.from, "LLL dd, y")
-                      )
-                    ) : (
-                      <span>Pick a date range</span>
-                    )}
-                  </Button>
+                  <div className="flex w-full cursor-pointer divide-x divide-neutral-300 dark:divide-neutral-700">
+                    <button className="flex-1 px-4 py-3 text-left transition hover:bg-neutral-50 dark:hover:bg-neutral-900">
+                      <div className="text-[10px] font-bold uppercase tracking-wider">
+                        Check-in
+                      </div>
+                      <div className="text-sm text-neutral-500">
+                        {date?.from && isValid(date.from) ? format(date.from, "M/d/yyyy") : "Add date"}
+                      </div>
+                    </button>
+                    <button className="flex-1 px-4 py-3 text-left transition hover:bg-neutral-50 dark:hover:bg-neutral-900">
+                      <div className="text-[10px] font-bold uppercase tracking-wider">
+                        Checkout
+                      </div>
+                      <div className="text-sm text-neutral-500">
+                        {date?.to && isValid(date.to) ? format(date.to, "M/d/yyyy") : "Add date"}
+                      </div>
+                    </button>
+                  </div>
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0" align="center">
                   <Calendar
-                    initialFocus
                     mode="range"
                     defaultMonth={date?.from}
                     selected={date}
                     onSelect={setDate}
                     numberOfMonths={2}
-                    disabled={(day) => isDateUnavailable(format(day, "yyyy-MM-dd")) || day < new Date()}
+                    disabled={(day) => (isValid(day) ? isDateUnavailable(format(day, "yyyy-MM-dd")) : false) || day < new Date(new Date().setHours(0,0,0,0))}
                   />
                 </PopoverContent>
               </Popover>
@@ -135,14 +152,14 @@ export function BookingWidget({ listing }: BookingWidgetProps) {
             </div>
           </div>
 
-          {(checkIn && isDateUnavailable(checkIn)) || (checkOut && isDateUnavailable(checkOut)) ? (
+          {isOverlap ? (
             <p className="text-sm text-red-600">Selected dates include unavailable nights</p>
           ) : null}
 
           <Button
             className="w-full rounded-lg"
             size="lg"
-            disabled={!isValid || !user}
+            disabled={!isValidSelection || !user}
             onClick={() => setShowCheckout(true)}
           >
             {user ? "Reserve" : "Select a user to book"}
@@ -179,7 +196,7 @@ export function BookingWidget({ listing }: BookingWidgetProps) {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-neutral-600 dark:text-neutral-400">
-              {listing.title} · {format(parseISO(checkIn), "MMM d")} – {format(parseISO(checkOut), "MMM d")} · {guests} guest{guests > 1 ? "s" : ""}
+              {listing.title} · {formatSafeDate(checkIn, "MMM d")} – {formatSafeDate(checkOut, "MMM d")} · {guests} guest{guests > 1 ? "s" : ""}
             </p>
             {priceBreakdown && (
               <p className="text-2xl font-semibold">Total: {formatPrice(priceBreakdown.total)}</p>

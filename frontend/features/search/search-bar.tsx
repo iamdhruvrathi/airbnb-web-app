@@ -31,12 +31,18 @@ export function SearchBar({ compact = false }: SearchBarProps) {
     const params = new URLSearchParams();
     if (location) {
       params.set("q", location);
-      params.set("city", location);
     }
     if (date?.from) params.set("check_in", format(date.from, "yyyy-MM-dd"));
     if (date?.to) params.set("check_out", format(date.to, "yyyy-MM-dd"));
     if (guests) params.set("guests", guests);
     router.push(`/?${params.toString()}`);
+  }
+
+  function handleClear() {
+    setLocation("");
+    setDate(undefined);
+    setGuests("1");
+    router.push("/");
   }
 
   if (compact) {
@@ -79,7 +85,6 @@ export function SearchBar({ compact = false }: SearchBarProps) {
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="center">
               <Calendar
-                initialFocus
                 mode="range"
                 defaultMonth={date?.from}
                 selected={date}
@@ -101,10 +106,15 @@ export function SearchBar({ compact = false }: SearchBarProps) {
             className="border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
           />
         </div>
-        <Button onClick={handleSearch} className="mx-2 rounded-full px-6">
-          <Search className="h-4 w-4" />
-          <span className="hidden md:inline">Search</span>
-        </Button>
+        <div className="flex items-center gap-2 pr-2">
+          <Button onClick={handleSearch} className="rounded-full px-6 flex-1">
+            <Search className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">Search</span>
+          </Button>
+          <Button variant="outline" onClick={handleClear} className="rounded-full px-6 hidden lg:flex">
+            Clear
+          </Button>
+        </div>
       </div>
     </div>
   );

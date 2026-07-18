@@ -210,6 +210,15 @@ class ListingService:
             raise NotFoundError("Listing")
         if listing.host_id != host.id:
             raise ForbiddenError("You can only delete your own listings")
+            
+        import cloudinary.uploader
+        for img in listing.images:
+            if img.public_id:
+                try:
+                    cloudinary.uploader.destroy(img.public_id)
+                except Exception as e:
+                    print(f"Failed to delete image {img.public_id}: {e}")
+
         self.repo.delete(listing)
 
 

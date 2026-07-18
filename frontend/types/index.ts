@@ -35,6 +35,7 @@ export interface ListingImage {
   url: string;
   alt_text: string | null;
   sort_order: number;
+  public_id?: string | null;
 }
 
 export interface HostSummary {
@@ -157,7 +158,7 @@ export interface ListingSearchParams {
   min_price?: number;
   max_price?: number;
   property_type?: PropertyType;
-  amenity_ids?: number[];
+  amenity_ids?: string;
   min_bedrooms?: number;
   page?: number;
   page_size?: number;
@@ -184,7 +185,7 @@ export interface ListingCreatePayload {
   bedrooms: number;
   beds: number;
   bathrooms: number;
-  images: { url: string; alt_text?: string; sort_order?: number }[];
+  images: { url: string; alt_text?: string; sort_order?: number; public_id?: string }[];
   amenity_ids: number[];
 }
 
