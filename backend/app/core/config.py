@@ -25,9 +25,18 @@ class Settings(BaseSettings):
 
     @property
     def sqlalchemy_database_url(self) -> str:
-        if self.DATABASE_URL.startswith("postgres://"):
-            return self.DATABASE_URL.replace("postgres://", "postgresql://", 1)
-        return self.DATABASE_URL
+        import os
+        # Prefer POSTGRES_PRISMA_URL which is injected by Supabase Vercel integration and uses the IPv4 pooler
+        url_to_use = os.environ.get("POSTGRES_PRISMA_URL") or self.DATABASE_URL
+        
+        if url_to_use.startswith("postgres://"):
+            url_to_use = url_to_use.replace("postgres://", "postgresql://", 1)
+            
+        # Strip Prisma-specific query parameters like ?pgbouncer=true which SQLAlchemy doesn't understand
+        if "?" in url_to_use:
+            url_to_use = url_to_use.split("?")[0]
+            
+        return url_to_use
 
 
 settings = Settings()
