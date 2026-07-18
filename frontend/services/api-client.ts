@@ -7,11 +7,11 @@ export const apiClient = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
-export function setAuthUserId(userId: number | null) {
-  if (userId) {
-    apiClient.defaults.headers.common["X-User-Id"] = String(userId);
+export function setAuthToken(token: string | null) {
+  if (token) {
+    apiClient.defaults.headers.common["Authorization"] = `Bearer ${token}`;
   } else {
-    delete apiClient.defaults.headers.common["X-User-Id"];
+    delete apiClient.defaults.headers.common["Authorization"];
   }
 }
 

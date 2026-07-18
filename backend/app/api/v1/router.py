@@ -21,6 +21,7 @@ from app.schemas import (
     ReviewCreate,
     ReviewResponse,
     UserResponse,
+    UserUpdate,
     WishlistItemResponse,
 )
 from app.services import (
@@ -40,10 +41,26 @@ def list_users(db: Session = Depends(get_db)):
     return AuthService(db).get_users()
 
 
-@router.post("/auth/switch", response_model=AuthUserResponse)
-def switch_user(payload: AuthSwitchRequest, db: Session = Depends(get_db)):
-    user = AuthService(db).switch_user(payload.user_id)
-    return AuthUserResponse(user=UserResponse.model_validate(user), message="Switched user successfully")
+@router.get("/auth/me", response_model=UserResponse)
+def get_me(user: User = Depends(get_current_user)):
+    return user
+
+
+@router.put("/auth/me", response_model=UserResponse)
+def update_me(
+    payload: UserUpdate,
+    db: Session = Depends(get_db),
+    user: User = Depends(get_current_user),
+):
+    if payload.name is not None:
+        user.name = payload.name
+    if payload.bio is not None:
+        user.bio = payload.bio
+    if payload.avatar_url is not None:
+        user.avatar_url = payload.avatar_url
+    db.commit()
+    db.refresh(user)
+    return user
 
 
 @router.get("/listings", response_model=PaginatedResponse)

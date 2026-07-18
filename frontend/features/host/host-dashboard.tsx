@@ -17,14 +17,14 @@ export function HostDashboard() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["host-dashboard"],
     queryFn: () => hostApi.getDashboard(),
-    enabled: user?.role === "host",
+    enabled: !!user,
   });
 
-  if (user?.role !== "host") {
+  if (!user) {
     return (
       <div className="rounded-2xl border border-dashed p-12 text-center">
-        <p className="text-lg font-medium">Host access required</p>
-        <p className="mt-2 text-neutral-500">Switch to a host user from the menu to access the dashboard.</p>
+        <p className="text-lg font-medium">Authentication required</p>
+        <p className="mt-2 text-neutral-500">Sign in to manage your listings.</p>
       </div>
     );
   }

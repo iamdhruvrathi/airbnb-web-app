@@ -57,6 +57,12 @@ class UserCreate(UserBase):
     pass
 
 
+class UserUpdate(BaseModel):
+    name: str | None = Field(default=None, min_length=2, max_length=255)
+    bio: str | None = Field(default=None, max_length=1000)
+    avatar_url: str | None = None
+
+
 class UserResponse(UserBase):
     model_config = ConfigDict(from_attributes=True)
 

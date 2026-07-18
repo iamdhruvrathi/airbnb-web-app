@@ -16,7 +16,7 @@ export function HostListingsManager() {
   const { data, isLoading } = useQuery({
     queryKey: ["host-dashboard"],
     queryFn: () => hostApi.getDashboard(),
-    enabled: user?.role === "host",
+    enabled: !!user,
   });
 
   const deleteMutation = useMutation({
@@ -29,8 +29,8 @@ export function HostListingsManager() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  if (user?.role !== "host") {
-    return <p>Switch to a host user to manage listings.</p>;
+  if (!user) {
+    return <p>Sign in to manage your listings.</p>;
   }
 
   if (isLoading) return <div className="h-32 animate-pulse rounded-2xl bg-neutral-200" />;

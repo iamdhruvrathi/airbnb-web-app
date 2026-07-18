@@ -8,13 +8,16 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { bookingsApi } from "@/services";
 import { formatPrice } from "@/lib/utils";
+import { useAuth } from "@/features/auth/auth-provider";
 
 export function TripsView() {
   const queryClient = useQueryClient();
 
+  const { user } = useAuth();
   const { data: trips = [], isLoading, isError } = useQuery({
     queryKey: ["trips"],
     queryFn: () => bookingsApi.getMyTrips(),
+    enabled: !!user,
   });
 
   const cancelMutation = useMutation({
@@ -26,8 +29,17 @@ export function TripsView() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  if (!user) {
+    return (
+      <div className="rounded-2xl border border-dashed p-12 text-center">
+        <p className="text-lg font-medium">Authentication required</p>
+        <p className="mt-2 text-neutral-500">Sign in to view your trips.</p>
+      </div>
+    );
+  }
+
   if (isLoading) return <div className="h-64 animate-pulse rounded-2xl bg-neutral-200" />;
-  if (isError) return <p className="text-red-600">Failed to load trips. Select a user from the menu.</p>;
+  if (isError) return <p className="text-red-600">Failed to load trips.</p>;
 
   return (
     <div className="space-y-6">

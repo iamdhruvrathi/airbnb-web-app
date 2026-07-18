@@ -83,8 +83,8 @@ export function ListingForm({ listingId, defaultValues }: ListingFormProps) {
   });
 
   function onSubmit(values: ListingFormValues) {
-    if (user?.role !== "host") {
-      toast.error("Only hosts can manage listings");
+    if (!user) {
+      toast.error("Please sign in to create a listing");
       return;
     }
 

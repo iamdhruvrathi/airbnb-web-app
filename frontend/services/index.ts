@@ -19,9 +19,9 @@ import type {
 import { apiClient } from "./api-client";
 
 export const authApi = {
-  getUsers: () => apiClient.get<User[]>("/auth/users").then((r) => r.data),
-  switchUser: (userId: number) =>
-    apiClient.post<{ user: User; message: string }>("/auth/switch", { user_id: userId }).then((r) => r.data),
+  getMe: () => apiClient.get<User>("/auth/me").then((r) => r.data),
+  updateMe: (payload: { name?: string; bio?: string; avatar_url?: string }) =>
+    apiClient.put<User>("/auth/me", payload).then((r) => r.data),
 };
 
 export const listingsApi = {

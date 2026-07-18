@@ -20,7 +20,7 @@ import { SearchBar } from "@/features/search/search-bar";
 
 export function Navbar() {
   const pathname = usePathname();
-  const { user, users, switchUser } = useAuth();
+  const { user, signInWithGoogle, logout } = useAuth();
   const [menuOpen, setMenuOpen] = useState(false);
   const hideSearch = pathname.startsWith("/listings/") && pathname.split("/").length > 2;
 
@@ -39,7 +39,12 @@ export function Navbar() {
         )}
 
         <div className="ml-auto flex items-center gap-2">
-          {user?.role === "host" && (
+          <Link href="/">
+            <Button variant="ghost" size="sm" className="hidden rounded-full md:inline-flex">
+              View all listings
+            </Button>
+          </Link>
+          {user && (
             <Link href="/host/listings/new">
               <Button variant="ghost" size="sm" className="hidden rounded-full md:inline-flex">
                 <Plus className="h-4 w-4" />
@@ -79,46 +84,47 @@ export function Navbar() {
                     </div>
                   )}
                   <nav className="py-2">
+                    <Link href="/profile" className="flex items-center gap-2 px-4 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-900" onClick={() => setMenuOpen(false)}>
+                      <User className="h-4 w-4" /> Profile
+                    </Link>
                     <Link href="/trips" className="flex items-center gap-2 px-4 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-900" onClick={() => setMenuOpen(false)}>
                       <Plane className="h-4 w-4" /> My Trips
                     </Link>
                     <Link href="/wishlist" className="flex items-center gap-2 px-4 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-900" onClick={() => setMenuOpen(false)}>
                       <Heart className="h-4 w-4" /> Wishlist
                     </Link>
-                    {user?.role === "host" && (
-                      <Link href="/host" className="flex items-center gap-2 px-4 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-900" onClick={() => setMenuOpen(false)}>
-                        <User className="h-4 w-4" /> Host Dashboard
-                      </Link>
-                    )}
+                    <Link href="/host" className="flex items-center gap-2 px-4 py-2 hover:bg-neutral-50 dark:hover:bg-neutral-900" onClick={() => setMenuOpen(false)}>
+                      <User className="h-4 w-4" /> My Listings
+                    </Link>
                     <div className="flex items-center gap-2 px-4 py-2 text-neutral-400">
                       <User className="h-4 w-4" /> Identity Verification (Coming Soon)
                     </div>
                   </nav>
-                  <div className="border-t border-neutral-200 px-4 py-3 dark:border-neutral-800">
-                    <p className="mb-2 text-xs font-medium uppercase tracking-wide text-neutral-500">Switch user (mock auth)</p>
-                    <div className="space-y-1">
-                      {users.map((u) => (
-                        <button
-                          key={u.id}
-                          className={cn(
-                            "flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm hover:bg-neutral-50 dark:hover:bg-neutral-900",
-                            user?.id === u.id && "bg-neutral-100 dark:bg-neutral-900"
-                          )}
-                          onClick={() => {
-                            switchUser(u.id);
-                            setMenuOpen(false);
-                          }}
-                        >
-                          <Avatar className="h-6 w-6">
-                            {u.avatar_url && <AvatarImage src={u.avatar_url} alt={u.name} />}
-                            <AvatarFallback>{u.name[0]}</AvatarFallback>
-                          </Avatar>
-                          <span>{u.name}</span>
-                          <span className="ml-auto text-xs capitalize text-neutral-500">{u.role}</span>
-                        </button>
-                      ))}
+                  {user ? (
+                    <div className="border-t border-neutral-200 px-4 py-3 dark:border-neutral-800">
+                      <button
+                        className="flex w-full items-center gap-2 rounded-lg px-2 py-2 text-left text-sm font-medium text-red-600 hover:bg-neutral-50 dark:hover:bg-neutral-900"
+                        onClick={() => {
+                          logout();
+                          setMenuOpen(false);
+                        }}
+                      >
+                        Sign out
+                      </button>
                     </div>
-                  </div>
+                  ) : (
+                    <div className="border-t border-neutral-200 px-4 py-3 dark:border-neutral-800">
+                      <button
+                        className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#FF385C] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#D70466]"
+                        onClick={() => {
+                          signInWithGoogle();
+                          setMenuOpen(false);
+                        }}
+                      >
+                        Sign in with Google
+                      </button>
+                    </div>
+                  )}
                   <div className="border-t border-neutral-200 px-4 py-2 dark:border-neutral-800">
                     <button className="flex items-center gap-2 text-sm text-neutral-600 dark:text-neutral-400">
                       <Globe className="h-4 w-4" /> English · USD

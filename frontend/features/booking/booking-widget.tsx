@@ -22,7 +22,7 @@ interface BookingWidgetProps {
 }
 
 export function BookingWidget({ listing }: BookingWidgetProps) {
-  const { user } = useAuth();
+  const { user, signInWithGoogle } = useAuth();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [date, setDate] = useState<DateRange | undefined>();
@@ -159,10 +159,16 @@ export function BookingWidget({ listing }: BookingWidgetProps) {
           <Button
             className="w-full rounded-lg"
             size="lg"
-            disabled={!isValidSelection || !user}
-            onClick={() => setShowCheckout(true)}
+            disabled={!isValidSelection}
+            onClick={() => {
+              if (user) {
+                setShowCheckout(true);
+              } else {
+                signInWithGoogle();
+              }
+            }}
           >
-            {user ? "Reserve" : "Select a user to book"}
+            {user ? "Reserve" : "Sign in to book"}
           </Button>
           <p className="text-center text-sm text-neutral-500">You won&apos;t be charged yet</p>
 

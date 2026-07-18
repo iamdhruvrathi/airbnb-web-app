@@ -157,8 +157,6 @@ class ListingService:
         )
 
     def create(self, host: User, data: ListingCreate) -> ListingDetailResponse:
-        if host.role != UserRole.HOST:
-            raise ForbiddenError("Only hosts can create listings")
 
         amenities = self.amenity_repo.get_by_ids(data.amenity_ids)
         if len(amenities) != len(set(data.amenity_ids)):
@@ -294,7 +292,9 @@ class BookingService:
         booking = self.repo.get_by_id(booking_id)
         if not booking:
             raise NotFoundError("Booking")
-        if booking.guest_id != user.id:
+        
+        listing = self.listing_repo.get_by_id(booking.listing_id)
+        if booking.guest_id != user.id and (not listing or listing.host_id != user.id):
             raise ForbiddenError("You can only cancel your own bookings")
         if booking.status == BookingStatus.CANCELLED:
             raise ConflictError("Booking is already cancelled")
@@ -383,8 +383,6 @@ class HostService:
         self.listing_service = ListingService(db)
 
     def get_dashboard(self, host: User) -> HostDashboardResponse:
-        if host.role != UserRole.HOST:
-            raise ForbiddenError("Only hosts can access the dashboard")
 
         listings = self.listing_repo.get_by_host(host.id)
         bookings = self.booking_repo.get_by_host(host.id)

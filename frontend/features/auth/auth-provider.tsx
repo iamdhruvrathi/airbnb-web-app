@@ -1,65 +1,83 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createClient } from "@supabase/supabase-js";
 import { authApi } from "@/services";
-import { setAuthUserId } from "@/services/api-client";
+import { setAuthToken } from "@/services/api-client";
 import type { User } from "@/types";
 
 interface AuthContextValue {
   user: User | null;
-  users: User[];
   isLoading: boolean;
-  switchUser: (userId: number) => Promise<void>;
-  logout: () => void;
+  signInWithGoogle: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
-const STORAGE_KEY = "airbnb-current-user-id";
+
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+export const supabase = createClient(supabaseUrl, supabaseKey);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    async function init() {
-      try {
-        const allUsers = await authApi.getUsers();
-        setUsers(allUsers);
-        const storedId = localStorage.getItem(STORAGE_KEY);
-        const defaultUser = storedId
-          ? allUsers.find((u) => u.id === Number(storedId)) ?? allUsers[0]
-          : allUsers[0];
-        if (defaultUser) {
-          setAuthUserId(defaultUser.id);
-          setUser(defaultUser);
-          localStorage.setItem(STORAGE_KEY, String(defaultUser.id));
-        }
-      } catch {
-        setUser(null);
-      } finally {
-        setIsLoading(false);
-      }
+  // Sync Supabase token to backend and fetch our local User object
+  const syncSession = useCallback(async (token: string | null) => {
+    if (!token) {
+      setUser(null);
+      setAuthToken(null);
+      setIsLoading(false);
+      return;
     }
-    init();
+    try {
+      setAuthToken(token);
+      const me = await authApi.getMe();
+      setUser(me);
+    } catch {
+      setUser(null);
+      setAuthToken(null);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  const switchUser = useCallback(async (userId: number) => {
-    const result = await authApi.switchUser(userId);
-    setUser(result.user);
-    setAuthUserId(result.user.id);
-    localStorage.setItem(STORAGE_KEY, String(result.user.id));
+  useEffect(() => {
+    // Check active session on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      syncSession(session?.access_token ?? null);
+    });
+
+    // Listen for auth changes (login, logout, token refresh)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      syncSession(session?.access_token ?? null);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [syncSession]);
+
+  const signInWithGoogle = useCallback(async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: window.location.origin,
+      },
+    });
   }, []);
 
-  const logout = useCallback(() => {
-    setUser(null);
-    setAuthUserId(null);
-    localStorage.removeItem(STORAGE_KEY);
+  const logout = useCallback(async () => {
+    await supabase.auth.signOut();
   }, []);
 
   const value = useMemo(
-    () => ({ user, users, isLoading, switchUser, logout }),
-    [user, users, isLoading, switchUser, logout]
+    () => ({ user, isLoading, signInWithGoogle, logout }),
+    [user, isLoading, signInWithGoogle, logout]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
