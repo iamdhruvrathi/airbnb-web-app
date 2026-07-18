@@ -9,7 +9,10 @@ from app.database import Base, engine
 from app.utils.exceptions import AppException
 from app.seed.seed import run_seed
 
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    print(f"Warning: Could not create DB tables: {e}")
 
 if settings.CLOUDINARY_CLOUD_NAME:
     cloudinary.config(
@@ -23,7 +26,10 @@ app = FastAPI(title=settings.APP_NAME, version=settings.APP_VERSION)
 
 @app.on_event("startup")
 def startup_event():
-    run_seed()
+    try:
+        run_seed()
+    except Exception as e:
+        print(f"Warning: Seed failed (non-fatal): {e}")
 
 @app.exception_handler(AppException)
 async def app_exception_handler(_request: Request, exc: AppException):
@@ -35,8 +41,8 @@ async def app_exception_handler(_request: Request, exc: AppException):
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins_list,
-    allow_credentials=True,
+    allow_origins=["*"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
