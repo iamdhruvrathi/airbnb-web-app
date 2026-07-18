@@ -160,6 +160,7 @@ export interface ListingSearchParams {
   property_type?: PropertyType;
   amenity_ids?: string;
   min_bedrooms?: number;
+  sort_by?: string;
   page?: number;
   page_size?: number;
 }

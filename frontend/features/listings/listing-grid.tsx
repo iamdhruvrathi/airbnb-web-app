@@ -24,6 +24,7 @@ export function ListingGrid() {
     property_type: (searchParams.get("property_type") as PropertyType) ?? undefined,
     amenity_ids: searchParams.get("amenity_ids") ?? undefined,
     min_bedrooms: searchParams.get("min_bedrooms") ? Number(searchParams.get("min_bedrooms")) : undefined,
+    sort_by: searchParams.get("sort_by") ?? undefined,
   };
 
   const {

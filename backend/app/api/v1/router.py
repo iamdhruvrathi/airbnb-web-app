@@ -76,6 +76,7 @@ def search_listings(
     property_type: str | None = None,
     amenity_ids: str | None = None,
     min_bedrooms: int | None = Query(default=None, ge=0),
+    sort_by: str | None = None,
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=12, ge=1, le=50),
     db: Session = Depends(get_db),
@@ -97,6 +98,7 @@ def search_listings(
         property_type=PropertyType(property_type) if property_type else None,
         amenity_ids=[int(x) for x in amenity_ids.split(",")] if amenity_ids else None,
         min_bedrooms=min_bedrooms,
+        sort_by=sort_by,
         page=page,
         page_size=page_size,
     )

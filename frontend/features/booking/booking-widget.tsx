@@ -16,6 +16,7 @@ import { useAuth } from "@/features/auth/auth-provider";
 import { bookingsApi, listingsApi } from "@/services";
 import { formatPrice } from "@/lib/utils";
 import type { ListingDetail } from "@/types";
+import { useMediaQuery } from "@/hooks/use-media-query";
 
 interface BookingWidgetProps {
   listing: ListingDetail;
@@ -28,6 +29,7 @@ export function BookingWidget({ listing }: BookingWidgetProps) {
   const [date, setDate] = useState<DateRange | undefined>();
   const [guests, setGuests] = useState(1);
   const [showCheckout, setShowCheckout] = useState(false);
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const checkIn = date?.from && isValid(date.from) ? format(date.from, "yyyy-MM-dd") : "";
   const checkOut = date?.to && isValid(date.to) ? format(date.to, "yyyy-MM-dd") : "";
@@ -133,7 +135,7 @@ export function BookingWidget({ listing }: BookingWidgetProps) {
                     defaultMonth={date?.from}
                     selected={date}
                     onSelect={setDate}
-                    numberOfMonths={2}
+                    numberOfMonths={isDesktop ? 2 : 1}
                     disabled={(day) => (isValid(day) ? isDateUnavailable(format(day, "yyyy-MM-dd")) : false) || day < new Date(new Date().setHours(0,0,0,0))}
                   />
                 </PopoverContent>

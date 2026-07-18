@@ -1,30 +1,27 @@
-"""Seed the database with sample users, listings, bookings, and reviews."""
+"""Seed the database with sample users, listings, bookings, and reviews for Indian destinations."""
 
+import random
 from datetime import date, timedelta
 
+import cloudinary
+import cloudinary.uploader
 from sqlalchemy.orm import Session
 
 from app.database import SessionLocal, engine
 from app.database.base import Base
 from app.models import (
-    Amenity,
-    Booking,
-    BookingStatus,
-    Listing,
-    ListingAmenity,
-    ListingImage,
-    PropertyType,
-    Review,
-    User,
-    UserRole,
-    WishlistItem,
+    Amenity, Booking, BookingStatus, Listing, ListingAmenity,
+    ListingImage, PropertyType, Review, User, UserRole, WishlistItem,
 )
+from app.core.config import settings
+
+# Fixed random seed for deterministic generation
+random.seed(42)
 
 AMENITIES = [
     ("WiFi", "wifi", "essentials"),
     ("Kitchen", "utensils", "essentials"),
     ("Washer", "shirt", "essentials"),
-    ("Dryer", "wind", "essentials"),
     ("Air conditioning", "snowflake", "essentials"),
     ("Heating", "flame", "essentials"),
     ("TV", "tv", "features"),
@@ -39,310 +36,128 @@ AMENITIES = [
     ("Pet friendly", "dog", "rules"),
     ("Self check-in", "key", "features"),
     ("Smoke alarm", "bell", "safety"),
-    ("Fire extinguisher", "shield", "safety"),
     ("Balcony", "home", "features"),
-]
-
-LISTING_TEMPLATES = [
-    {
-        "title": "Modern Loft in Downtown Austin",
-        "description": "Stylish loft with floor-to-ceiling windows, exposed brick, and a rooftop terrace. Walk to restaurants, live music venues, and the Capitol.",
-        "property_type": PropertyType.LOFT,
-        "city": "Austin",
-        "country": "United States",
-        "address": "123 Congress Ave, Austin, TX",
-        "latitude": 30.2672,
-        "longitude": -97.7431,
-        "price_per_night": 185,
-        "cleaning_fee": 75,
-        "max_guests": 4,
-        "bedrooms": 2,
-        "beds": 2,
-        "bathrooms": 2.0,
-        "images": [
-            "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800",
-            "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800",
-            "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800",
-        ],
-        "amenity_names": ["WiFi", "Kitchen", "Air conditioning", "Workspace", "Self check-in"],
-    },
-    {
-        "title": "Cozy Beach House in Malibu",
-        "description": "Wake up to ocean views in this serene beach house steps from the sand. Perfect for families or a romantic getaway with sunset decks.",
-        "property_type": PropertyType.BEACH_HOUSE,
-        "city": "Malibu",
-        "country": "United States",
-        "address": "45 Pacific Coast Hwy, Malibu, CA",
-        "latitude": 34.0259,
-        "longitude": -118.7798,
-        "price_per_night": 420,
-        "cleaning_fee": 120,
-        "max_guests": 6,
-        "bedrooms": 3,
-        "beds": 4,
-        "bathrooms": 2.5,
-        "images": [
-            "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800",
-            "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800",
-            "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800",
-        ],
-        "amenity_names": ["WiFi", "Kitchen", "Beach access", "Free parking", "Hot tub", "Pet friendly"],
-    },
-    {
-        "title": "Alpine Cabin Retreat in Aspen",
-        "description": "Rustic-chic cabin surrounded by pine forests with a wood-burning fireplace, ski storage, and panoramic mountain views.",
-        "property_type": PropertyType.CABIN,
-        "city": "Aspen",
-        "country": "United States",
-        "address": "789 Mountain Rd, Aspen, CO",
-        "latitude": 39.1911,
-        "longitude": -106.8175,
-        "price_per_night": 310,
-        "cleaning_fee": 95,
-        "max_guests": 5,
-        "bedrooms": 2,
-        "beds": 3,
-        "bathrooms": 2.0,
-        "images": [
-            "https://images.unsplash.com/photo-1518780669347-9e5945930618?w=800",
-            "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800",
-            "https://images.unsplash.com/photo-1587061949409-02df41d5e562?w=800",
-        ],
-        "amenity_names": ["WiFi", "Kitchen", "Heating", "Mountain view", "Free parking", "Fire extinguisher"],
-    },
-    {
-        "title": "Parisian Apartment near Eiffel Tower",
-        "description": "Elegant Haussmann-style apartment with parquet floors, a Juliet balcony, and views of the Eiffel Tower sparkling at night.",
-        "property_type": PropertyType.APARTMENT,
-        "city": "Paris",
-        "country": "France",
-        "address": "12 Rue de Grenelle, Paris",
-        "latitude": 48.8566,
-        "longitude": 2.3522,
-        "price_per_night": 275,
-        "cleaning_fee": 60,
-        "max_guests": 3,
-        "bedrooms": 1,
-        "beds": 2,
-        "bathrooms": 1.0,
-        "images": [
-            "https://images.unsplash.com/photo-1505691938895-1758d7feb511?w=800",
-            "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800",
-            "https://images.unsplash.com/photo-1523217582562-09bcd055837f?w=800",
-        ],
-        "amenity_names": ["WiFi", "Kitchen", "Heating", "City skyline view", "Washer", "Self check-in"],
-    },
-    {
-        "title": "Tropical Villa with Private Pool in Bali",
-        "description": "Open-air villa nestled in lush rice terraces featuring a infinity pool, outdoor shower, and dedicated staff.",
-        "property_type": PropertyType.VILLA,
-        "city": "Ubud",
-        "country": "Indonesia",
-        "address": "Jalan Raya Ubud, Bali",
-        "latitude": -8.5069,
-        "longitude": 115.2625,
-        "price_per_night": 350,
-        "cleaning_fee": 80,
-        "max_guests": 8,
-        "bedrooms": 4,
-        "beds": 5,
-        "bathrooms": 4.0,
-        "images": [
-            "https://images.unsplash.com/photo-1582268611954-ebfd161ef9cf?w=800",
-            "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800",
-            "https://images.unsplash.com/photo-1600047509807-ba8f99d2cd09?w=800",
-        ],
-        "amenity_names": ["WiFi", "Kitchen", "Pool", "Workspace", "Air conditioning", "Balcony"],
-    },
-    {
-        "title": "Brooklyn Brownstone Studio",
-        "description": "Sun-drenched studio in a historic brownstone with original moldings, a murphy bed, and a shared garden patio.",
-        "property_type": PropertyType.STUDIO,
-        "city": "New York",
-        "country": "United States",
-        "address": "234 Bedford Ave, Brooklyn, NY",
-        "latitude": 40.6782,
-        "longitude": -73.9442,
-        "price_per_night": 165,
-        "cleaning_fee": 55,
-        "max_guests": 2,
-        "bedrooms": 0,
-        "beds": 1,
-        "bathrooms": 1.0,
-        "images": [
-            "https://images.unsplash.com/photo-1536376072261-e996b15d6a0a?w=800",
-            "https://images.unsplash.com/photo-1560185127-6ed189bf02f4?w=800",
-            "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800",
-        ],
-        "amenity_names": ["WiFi", "Kitchen", "Heating", "Workspace", "Smoke alarm"],
-    },
-    {
-        "title": "Lakefront House in Lake Tahoe",
-        "description": "Spacious lakefront home with a private dock, kayaks, floor-to-ceiling windows, and a stone fireplace for cozy evenings.",
-        "property_type": PropertyType.HOUSE,
-        "city": "Lake Tahoe",
-        "country": "United States",
-        "address": "567 Lakeshore Blvd, South Lake Tahoe, CA",
-        "latitude": 38.9399,
-        "longitude": -119.9772,
-        "price_per_night": 395,
-        "cleaning_fee": 110,
-        "max_guests": 10,
-        "bedrooms": 4,
-        "beds": 6,
-        "bathrooms": 3.0,
-        "images": [
-            "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800",
-            "https://images.unsplash.com/photo-1605276374104-de6862b9a2a2?w=800",
-            "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800",
-        ],
-        "amenity_names": ["WiFi", "Kitchen", "Free parking", "Heating", "Pet friendly", "Gym"],
-    },
-    {
-        "title": "Minimalist Tokyo Apartment",
-        "description": "Design-forward apartment in Shibuya with smart home features, tatami room, and rooftop city views.",
-        "property_type": PropertyType.APARTMENT,
-        "city": "Tokyo",
-        "country": "Japan",
-        "address": "3-5 Shibuya, Tokyo",
-        "latitude": 35.6762,
-        "longitude": 139.6503,
-        "price_per_night": 145,
-        "cleaning_fee": 40,
-        "max_guests": 2,
-        "bedrooms": 1,
-        "beds": 1,
-        "bathrooms": 1.0,
-        "images": [
-            "https://images.unsplash.com/photo-1540932239982-301d637d3c94?w=800",
-            "https://images.unsplash.com/photo-1502672023488-70e25813eb80?w=800",
-            "https://images.unsplash.com/photo-1554995207-c18c203602cb?w=800",
-        ],
-        "amenity_names": ["WiFi", "Kitchen", "Air conditioning", "City skyline view", "Self check-in"],
-    },
-    {
-        "title": "Desert Oasis in Scottsdale",
-        "description": "Mid-century modern home with a resort-style pool, outdoor kitchen, and stunning Sonoran Desert sunsets.",
-        "property_type": PropertyType.HOUSE,
-        "city": "Scottsdale",
-        "country": "United States",
-        "address": "890 Camelback Rd, Scottsdale, AZ",
-        "latitude": 33.4942,
-        "longitude": -111.9261,
-        "price_per_night": 290,
-        "cleaning_fee": 85,
-        "max_guests": 6,
-        "bedrooms": 3,
-        "beds": 3,
-        "bathrooms": 2.5,
-        "images": [
-            "https://images.unsplash.com/photo-1600566753190-17f0baa2a6c3?w=800",
-            "https://images.unsplash.com/photo-1600573472592-401b023a2d9c?w=800",
-            "https://images.unsplash.com/photo-1600607687644-c7171b42498f?w=800",
-        ],
-        "amenity_names": ["WiFi", "Kitchen", "Pool", "Free parking", "Air conditioning", "Hot tub"],
-    },
-    {
-        "title": "Historic Townhouse in Charleston",
-        "description": "Beautifully restored townhouse in the French Quarter with original hardwood floors, a courtyard fountain, and southern charm.",
-        "property_type": PropertyType.TOWNHOUSE,
-        "city": "Charleston",
-        "country": "United States",
-        "address": "45 Church St, Charleston, SC",
-        "latitude": 32.7765,
-        "longitude": -79.9311,
-        "price_per_night": 225,
-        "cleaning_fee": 70,
-        "max_guests": 4,
-        "bedrooms": 2,
-        "beds": 3,
-        "bathrooms": 2.0,
-        "images": [
-            "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800",
-            "https://images.unsplash.com/photo-1600585154526-990dced4db0d?w=800",
-            "https://images.unsplash.com/photo-1600047509358-9dc75507daeb?w=800",
-        ],
-        "amenity_names": ["WiFi", "Kitchen", "Free parking", "Balcony", "Smoke alarm", "Heating"],
-    },
-    {
-        "title": "Amalfi Coast Cliffside Villa",
-        "description": "Stunning villa perched on the cliffs of Positano with terraced gardens, a plunge pool, and Mediterranean sea views.",
-        "property_type": PropertyType.VILLA,
-        "city": "Positano",
-        "country": "Italy",
-        "address": "Via Positano, Amalfi Coast",
-        "latitude": 40.6281,
-        "longitude": 14.485,
-        "price_per_night": 520,
-        "cleaning_fee": 150,
-        "max_guests": 6,
-        "bedrooms": 3,
-        "beds": 4,
-        "bathrooms": 3.0,
-        "images": [
-            "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800",
-            "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800",
-            "https://images.unsplash.com/photo-1600047509807-ba8f99d2cd09?w=800",
-        ],
-        "amenity_names": ["WiFi", "Kitchen", "Pool", "Balcony", "Air conditioning", "Beach access"],
-    },
-    {
-        "title": "Nordic Cabin in Reykjavik",
-        "description": "Scandinavian-inspired cabin with geothermal hot tub, northern lights viewing deck, and minimalist Nordic design.",
-        "property_type": PropertyType.CABIN,
-        "city": "Reykjavik",
-        "country": "Iceland",
-        "address": "12 Laugavegur, Reykjavik",
-        "latitude": 64.1466,
-        "longitude": -21.9426,
-        "price_per_night": 240,
-        "cleaning_fee": 65,
-        "max_guests": 4,
-        "bedrooms": 2,
-        "beds": 2,
-        "bathrooms": 1.5,
-        "images": [
-            "https://images.unsplash.com/photo-1518780669347-9e5945930618?w=800",
-            "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800",
-            "https://images.unsplash.com/photo-1587061949409-02df41d5e562?w=800",
-        ],
-        "amenity_names": ["WiFi", "Kitchen", "Hot tub", "Heating", "Mountain view", "Fire extinguisher"],
-    },
 ]
 
 USERS = [
     {
-        "email": "guest@demo.com",
-        "name": "Alex Rivera",
+        "email": "aarav.host@demo.com",
+        "name": "Aarav Sharma",
+        "role": UserRole.HOST,
+        "is_superhost": True,
+        "avatar_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
+        "bio": "Superhost with a passion for sharing the best of India. I love hosting!",
+    },
+    {
+        "email": "priya.host@demo.com",
+        "name": "Priya Patel",
+        "role": UserRole.HOST,
+        "is_superhost": True,
+        "avatar_url": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200",
+        "bio": "Design-focused host creating memorable stays in unique spaces across Goa and Kerala.",
+    },
+    {
+        "email": "rohan.host@demo.com",
+        "name": "Rohan Desai",
+        "role": UserRole.HOST,
+        "is_superhost": False,
+        "avatar_url": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200",
+        "bio": "Mountain lover and adventure enthusiast.",
+    },
+    {
+        "email": "guest1@demo.com",
+        "name": "Ananya Singh",
         "role": UserRole.GUEST,
         "avatar_url": "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200",
         "bio": "Travel enthusiast exploring the world one stay at a time.",
     },
     {
-        "email": "host@demo.com",
-        "name": "Jordan Chen",
-        "role": UserRole.HOST,
-        "is_superhost": True,
-        "avatar_url": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
-        "bio": "Superhost with 5 years of hosting experience. I love sharing my favorite neighborhoods.",
-    },
-    {
-        "email": "host2@demo.com",
-        "name": "Samira Patel",
-        "role": UserRole.HOST,
-        "is_superhost": True,
-        "avatar_url": "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=200",
-        "bio": "Design-focused host creating memorable stays in unique spaces.",
-    },
-    {
         "email": "guest2@demo.com",
-        "name": "Taylor Brooks",
+        "name": "Vikram Malhotra",
         "role": UserRole.GUEST,
-        "avatar_url": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200",
+        "avatar_url": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200",
         "bio": "Weekend explorer and foodie.",
     },
+    {
+        "email": "guest3@demo.com",
+        "name": "Neha Gupta",
+        "role": UserRole.GUEST,
+        "avatar_url": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200",
+        "bio": "Digital nomad looking for the best Wi-Fi and views.",
+    },
+    {
+        "email": "guest4@demo.com",
+        "name": "Kabir Khan",
+        "role": UserRole.GUEST,
+        "avatar_url": "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=200",
+        "bio": "Always on the move.",
+    }
 ]
 
+CITIES = [
+    ("Bengaluru", 12.9716, 77.5946, PropertyType.APARTMENT),
+    ("Mumbai", 19.0760, 72.8777, PropertyType.APARTMENT),
+    ("Delhi", 28.7041, 77.1025, PropertyType.HOUSE),
+    ("Goa", 15.2993, 74.1240, PropertyType.VILLA),
+    ("Jaipur", 26.9124, 75.7873, PropertyType.TOWNHOUSE),
+    ("Udaipur", 24.5854, 73.7125, PropertyType.HOUSE),
+    ("Manali", 32.2396, 77.1887, PropertyType.CABIN),
+    ("Shimla", 31.1048, 77.1734, PropertyType.CABIN),
+    ("Ooty", 11.4102, 76.6950, PropertyType.CABIN),
+    ("Munnar", 10.0889, 77.0595, PropertyType.CABIN),
+    ("Coorg", 12.3375, 75.8069, PropertyType.VILLA),
+    ("Wayanad", 11.6854, 76.1320, PropertyType.HOUSE),
+    ("Alleppey", 9.4981, 76.3388, PropertyType.HOUSE),
+    ("Hampi", 15.3350, 76.4600, PropertyType.HOUSE),
+    ("Mysuru", 12.2958, 76.6394, PropertyType.HOUSE),
+    ("Hyderabad", 17.3850, 78.4867, PropertyType.APARTMENT),
+    ("Chennai", 13.0827, 80.2707, PropertyType.APARTMENT),
+    ("Kochi", 9.9312, 76.2673, PropertyType.VILLA),
+    ("Srinagar", 34.0837, 74.7973, PropertyType.HOUSE),
+    ("Leh", 34.1526, 77.5771, PropertyType.CABIN),
+]
+
+ADJECTIVES = ["Beautiful", "Serene", "Cozy", "Luxury", "Modern", "Historic", "Peaceful", "Stunning", "Charming", "Spacious"]
+NOUNS = ["Retreat", "Getaway", "Haven", "Oasis", "Hideaway", "Sanctuary", "Home", "Villa", "Cabin", "Stay"]
+
+UNSPLASH_URLS = [
+    "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800",
+    "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800",
+    "https://images.unsplash.com/photo-1499793983690-e29da59ef1c2?w=800",
+    "https://images.unsplash.com/photo-1582268611954-ebfd161ef9cf?w=800",
+    "https://images.unsplash.com/photo-1613490493576-7fde63acd811?w=800",
+    "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800",
+    "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?w=800",
+    "https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800",
+    "https://images.unsplash.com/photo-1518780669347-9e5945930618?w=800",
+    "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800",
+    "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800",
+    "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800",
+]
+
+UPLOADED_IMAGES = []
+
+def get_cloudinary_images() -> list[str]:
+    global UPLOADED_IMAGES
+    if UPLOADED_IMAGES:
+        return UPLOADED_IMAGES
+    
+    if not settings.CLOUDINARY_CLOUD_NAME:
+        print("Cloudinary not configured. Falling back to Unsplash URLs.")
+        UPLOADED_IMAGES = UNSPLASH_URLS
+        return UPLOADED_IMAGES
+        
+    print("Uploading sample images to Cloudinary (this might take a minute)...")
+    for i, url in enumerate(UNSPLASH_URLS):
+        try:
+            res = cloudinary.uploader.upload(url, folder="airbnb_seed")
+            UPLOADED_IMAGES.append(res.get("secure_url"))
+            print(f"Uploaded {i+1}/{len(UNSPLASH_URLS)}")
+        except Exception as e:
+            print(f"Failed to upload {url}: {e}")
+            UPLOADED_IMAGES.append(url)
+    
+    return UPLOADED_IMAGES
 
 def seed_amenities(db: Session) -> dict[str, Amenity]:
     amenity_map = {}
@@ -353,7 +168,6 @@ def seed_amenities(db: Session) -> dict[str, Amenity]:
         amenity_map[name] = amenity
     return amenity_map
 
-
 def seed_users(db: Session) -> list[User]:
     users = []
     for data in USERS:
@@ -363,114 +177,173 @@ def seed_users(db: Session) -> list[User]:
         users.append(user)
     return users
 
-
-def seed_listings(db: Session, hosts: list[User], amenity_map: dict[str, Amenity]) -> list[Listing]:
+def generate_listings(db: Session, hosts: list[User], amenity_map: dict[str, Amenity], image_urls: list[str]) -> list[Listing]:
     listings = []
-    for idx, template in enumerate(LISTING_TEMPLATES):
-        host = hosts[idx % len(hosts)]
-        data = {k: v for k, v in template.items() if k not in ("images", "amenity_names")}
-        listing = Listing(host_id=host.id, **data)
+    
+    # Generate 40 listings
+    for i in range(40):
+        city, lat, lng, prop_type = random.choice(CITIES)
+        host = random.choice(hosts)
+        
+        # Add slight randomness to coordinates
+        lat += random.uniform(-0.02, 0.02)
+        lng += random.uniform(-0.02, 0.02)
+        
+        adj = random.choice(ADJECTIVES)
+        noun = random.choice(NOUNS)
+        title = f"{adj} {noun} in {city}"
+        
+        desc = f"Experience the best of {city} in this {adj.lower()} {prop_type.value}. " \
+               f"Perfect for families, couples, or solo travelers. Enjoy a fully equipped space " \
+               f"with everything you need for a comfortable stay."
+
+        bedrooms = random.randint(1, 5)
+        beds = bedrooms + random.randint(0, 2)
+        max_guests = beds * 2
+        price = random.randint(30, 250) * 10  # Roughly 300 to 2500 INR/equivalent
+        
+        listing = Listing(
+            host_id=host.id,
+            title=title,
+            description=desc,
+            property_type=prop_type,
+            city=city,
+            country="India",
+            address=f"Central {city}, India",
+            latitude=lat,
+            longitude=lng,
+            price_per_night=price,
+            cleaning_fee=price * 0.2,
+            max_guests=max_guests,
+            bedrooms=bedrooms,
+            beds=beds,
+            bathrooms=random.choice([1.0, 1.5, 2.0, 3.0])
+        )
         db.add(listing)
         db.flush()
-
-        for order, url in enumerate(template["images"]):
-            db.add(ListingImage(listing_id=listing.id, url=url, alt_text=template["title"], sort_order=order))
-
-        for name in template["amenity_names"]:
-            db.add(ListingAmenity(listing_id=listing.id, amenity_id=amenity_map[name].id))
-
+        
+        # Add 3 to 6 images
+        num_images = random.randint(3, 6)
+        selected_images = random.sample(image_urls, num_images)
+        for order, url in enumerate(selected_images):
+            db.add(ListingImage(listing_id=listing.id, url=url, alt_text=title, sort_order=order))
+            
+        # Add amenities
+        num_amenities = random.randint(5, 12)
+        selected_amenities = random.sample(list(amenity_map.values()), num_amenities)
+        for amenity in selected_amenities:
+            db.add(ListingAmenity(listing_id=listing.id, amenity_id=amenity.id))
+            
         listings.append(listing)
+        
     return listings
 
-
-def seed_bookings_and_reviews(db: Session, guest: User, listings: list[Listing]) -> None:
+def seed_bookings_and_reviews(db: Session, guests: list[User], listings: list[Listing]) -> None:
     today = date.today()
-
-    booking1 = Booking(
-        listing_id=listings[0].id,
-        guest_id=guest.id,
-        check_in=today + timedelta(days=30),
-        check_out=today + timedelta(days=33),
-        guests=2,
-        nights=3,
-        nightly_rate=listings[0].price_per_night,
-        cleaning_fee=listings[0].cleaning_fee,
-        service_fee=round(listings[0].price_per_night * 3 * 0.12, 2),
-        total_price=round(listings[0].price_per_night * 3 + listings[0].cleaning_fee + listings[0].price_per_night * 3 * 0.12, 2),
-        status=BookingStatus.CONFIRMED,
-    )
-    db.add(booking1)
-    db.flush()
-
-    booking2 = Booking(
-        listing_id=listings[1].id,
-        guest_id=guest.id,
-        check_in=today + timedelta(days=10),
-        check_out=today + timedelta(days=14),
-        guests=4,
-        nights=4,
-        nightly_rate=listings[1].price_per_night,
-        cleaning_fee=listings[1].cleaning_fee,
-        service_fee=round(listings[1].price_per_night * 4 * 0.12, 2),
-        total_price=round(listings[1].price_per_night * 4 + listings[1].cleaning_fee + listings[1].price_per_night * 4 * 0.12, 2),
-        status=BookingStatus.CONFIRMED,
-    )
-    db.add(booking2)
-
-    past_booking = Booking(
-        listing_id=listings[2].id,
-        guest_id=guest.id,
-        check_in=today - timedelta(days=20),
-        check_out=today - timedelta(days=17),
-        guests=2,
-        nights=3,
-        nightly_rate=listings[2].price_per_night,
-        cleaning_fee=listings[2].cleaning_fee,
-        service_fee=round(listings[2].price_per_night * 3 * 0.12, 2),
-        total_price=round(listings[2].price_per_night * 3 + listings[2].cleaning_fee + listings[2].price_per_night * 3 * 0.12, 2),
-        status=BookingStatus.COMPLETED,
-    )
-    db.add(past_booking)
-    db.flush()
-
-    reviews_data = [
-        (listings[0].id, guest.id, 5, "Absolutely loved this loft! Perfect location and the rooftop views were incredible."),
-        (listings[1].id, guest.id, 4, "Beautiful beach house. The sunset deck was our favorite spot. Would stay again!"),
-        (listings[2].id, guest.id, 5, "The cabin was magical. Cozy fireplace and amazing mountain views. Host was very responsive."),
-        (listings[3].id, guest.id, 5, "Dream Paris apartment! Waking up to Eiffel Tower views never gets old."),
-        (listings[4].id, guest.id, 5, "Paradise in Bali. The pool overlooking rice terraces is unforgettable."),
+    
+    review_comments = [
+        "Absolutely amazing stay! The host was super responsive and the place was spotless.",
+        "Great location, walking distance to everything. Would highly recommend.",
+        "Beautiful property but the Wi-Fi was a bit spotty at times.",
+        "Had a wonderful time here. The views were breathtaking.",
+        "Very clean and comfortable. Check-in was a breeze.",
+        "Perfect getaway spot. We enjoyed the peaceful neighborhood.",
+        "The place looked exactly like the pictures. Fantastic experience.",
+        "Good value for money. The host gave us great local recommendations.",
+        "Incredible! 5 stars all around.",
+        "Nice place, slightly noisy at night but overall good."
     ]
-
-    for listing_id, author_id, rating, comment in reviews_data:
-        db.add(Review(listing_id=listing_id, author_id=author_id, rating=rating, comment=comment))
-
-    db.add(WishlistItem(user_id=guest.id, listing_id=listings[3].id))
-    db.add(WishlistItem(user_id=guest.id, listing_id=listings[4].id))
-    db.add(WishlistItem(user_id=guest.id, listing_id=listings[7].id))
-
+    
+    for listing in listings:
+        # Generate 3-6 reviews for each listing
+        num_reviews = random.randint(3, 6)
+        reviewers = random.sample(guests, min(num_reviews, len(guests)))
+        
+        for idx, reviewer in enumerate(reviewers):
+            rating = random.choices([5, 4, 3], weights=[70, 20, 10])[0]
+            comment = random.choice(review_comments)
+            
+            # Create a past booking for the review
+            past_check_in = today - timedelta(days=random.randint(10, 100))
+            nights = random.randint(2, 7)
+            past_check_out = past_check_in + timedelta(days=nights)
+            
+            booking = Booking(
+                listing_id=listing.id,
+                guest_id=reviewer.id,
+                check_in=past_check_in,
+                check_out=past_check_out,
+                guests=random.randint(1, listing.max_guests),
+                nights=nights,
+                nightly_rate=listing.price_per_night,
+                cleaning_fee=listing.cleaning_fee,
+                service_fee=listing.price_per_night * nights * 0.12,
+                total_price=(listing.price_per_night * nights) + listing.cleaning_fee + (listing.price_per_night * nights * 0.12),
+                status=BookingStatus.COMPLETED
+            )
+            db.add(booking)
+            db.flush()
+            
+            review = Review(
+                listing_id=listing.id,
+                author_id=reviewer.id,
+                booking_id=booking.id,
+                rating=rating,
+                comment=comment,
+                created_at=past_check_in + timedelta(days=nights + 1)
+            )
+            db.add(review)
+        
+        # Create a few upcoming blocked bookings to show calendar blocking
+        if random.random() > 0.5:
+            future_check_in = today + timedelta(days=random.randint(1, 14))
+            nights = random.randint(2, 5)
+            
+            future_booking = Booking(
+                listing_id=listing.id,
+                guest_id=random.choice(guests).id,
+                check_in=future_check_in,
+                check_out=future_check_in + timedelta(days=nights),
+                guests=2,
+                nights=nights,
+                nightly_rate=listing.price_per_night,
+                cleaning_fee=listing.cleaning_fee,
+                service_fee=listing.price_per_night * nights * 0.12,
+                total_price=(listing.price_per_night * nights) + listing.cleaning_fee,
+                status=BookingStatus.CONFIRMED
+            )
+            db.add(future_booking)
 
 def run_seed() -> None:
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
-        if db.query(User).count() > 0:
-            print("Database already seeded. Skipping.")
+        if db.query(Listing).count() > 0:
+            print("Database already seeded with listings. Skipping.")
             return
 
+        print("Starting seed process...")
+        image_urls = get_cloudinary_images()
+        
         amenity_map = seed_amenities(db)
         users = seed_users(db)
         hosts = [u for u in users if u.role == UserRole.HOST]
-        guest = next(u for u in users if u.email == "guest@demo.com")
-        listings = seed_listings(db, hosts, amenity_map)
-        seed_bookings_and_reviews(db, guest, listings)
+        guests = [u for u in users if u.role == UserRole.GUEST]
+        
+        print("Generating listings...")
+        listings = generate_listings(db, hosts, amenity_map, image_urls)
+        
+        print("Generating bookings and reviews...")
+        seed_bookings_and_reviews(db, guests, listings)
+        
         db.commit()
-        print(f"Seeded {len(users)} users, {len(listings)} listings, {len(amenity_map)} amenities.")
-    except Exception:
+        print(f"Successfully seeded {len(users)} users, {len(listings)} listings, and {len(amenity_map)} amenities.")
+    except Exception as e:
         db.rollback()
+        print(f"Error seeding database: {e}")
         raise
     finally:
         db.close()
-
 
 if __name__ == "__main__":
     run_seed()

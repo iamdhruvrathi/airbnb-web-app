@@ -197,6 +197,7 @@ class ListingSearchParams(BaseModel):
     property_type: PropertyType | None = None
     amenity_ids: list[int] | None = None
     min_bedrooms: int | None = Field(default=None, ge=0)
+    sort_by: str | None = None
     page: int = Field(default=1, ge=1)
     page_size: int = Field(default=12, ge=1, le=50)
 

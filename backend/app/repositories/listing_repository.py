@@ -145,9 +145,16 @@ class ListingRepository:
             query = query.filter(~Listing.id.in_(unavailable))
 
         total = query.count()
+        
+        if params.sort_by == "price_asc":
+            query = query.order_by(Listing.price_per_night.asc(), Listing.created_at.desc())
+        elif params.sort_by == "price_desc":
+            query = query.order_by(Listing.price_per_night.desc(), Listing.created_at.desc())
+        else:
+            query = query.order_by(Listing.created_at.desc())
+
         listings = (
-            query.order_by(Listing.created_at.desc())
-            .offset((params.page - 1) * params.page_size)
+            query.offset((params.page - 1) * params.page_size)
             .limit(params.page_size)
             .all()
         )

@@ -39,8 +39,9 @@ export default function ProfilePage() {
       await authApi.updateMe({ name, bio, avatar_url: avatarUrl });
       toast.success("Profile updated successfully!");
       window.location.reload();
-    } catch (err: any) {
-      toast.error(err.message || "Failed to update profile");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Failed to update profile";
+      toast.error(message);
     } finally {
       setIsSaving(false);
     }
@@ -80,9 +81,8 @@ export default function ProfilePage() {
               <label className="font-semibold">Profile Photo</label>
               <div className="max-w-md">
                 <ImageUpload
-                  value={avatarUrl ? [avatarUrl] : []}
-                  onChange={(urls) => setAvatarUrl(urls[0] || "")}
-                  maxFiles={1}
+                  value={avatarUrl ? [{ url: avatarUrl }] : []}
+                  onChange={(imgs) => setAvatarUrl(imgs[0]?.url || "")}
                 />
               </div>
             </div>
