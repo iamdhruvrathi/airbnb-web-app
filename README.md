@@ -1,8 +1,8 @@
 # Airbnb Clone
 
-A production-quality fullstack Airbnb clone built with **Next.js 15**, **FastAPI**, and **SQLite**. Browse listings, search with filters, book stays, manage host listings, and save favorites — all with an Airbnb-inspired UI.
+A production-quality fullstack Airbnb clone built with **Next.js 15**, **FastAPI**, and **Supabase PostgreSQL**. Browse listings, search with filters, book stays, manage host listings, and save favorites — all with an Airbnb-inspired UI.
 
-![Tech Stack](https://img.shields.io/badge/Next.js-15-black) ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Python](https://img.shields.io/badge/Python-3.12-yellow)
+![Tech Stack](https://img.shields.io/badge/Next.js-15-black) ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Python](https://img.shields.io/badge/Python-3.12-yellow) ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E)
 
 ## Live Demo
 
@@ -28,7 +28,7 @@ A production-quality fullstack Airbnb clone built with **Next.js 15**, **FastAPI
 |-------|-------------|
 | Frontend | Next.js 15, TypeScript, TailwindCSS, shadcn/ui, React Query, React Hook Form, Zod, Axios |
 | Backend | FastAPI, SQLAlchemy 2, Pydantic, Alembic, Python 3.12 |
-| Database | SQLite |
+| Database | Supabase PostgreSQL |
 | Auth | Mock (user switcher + `X-User-Id` header) |
 | Payments | Mock checkout dialog |
 | Maps | Static OpenStreetMap image |
@@ -42,6 +42,8 @@ See **[docs/SETUP.md](docs/SETUP.md)** for full installation instructions.
 cd backend
 python -m venv .venv && .venv\Scripts\activate   # Windows
 pip install -r requirements.txt
+cp .env.example .env  # Add your DATABASE_URL (Supabase Postgres)
+alembic upgrade head
 python seed_db.py
 uvicorn app.main:app --reload --port 8000
 
@@ -125,9 +127,9 @@ airbnb-web-app/
 
 - **No real authentication** — demo users are pre-seeded; switch via UI menu
 - **No real payments** — checkout is a confirmation dialog
-- **Images via URL** — no file upload or cloud storage
+- **Images via Cloudinary** — fast and optimized image delivery
 - **Static maps** — OpenStreetMap static image, not interactive
-- **SQLite** — suitable for demo; swap to PostgreSQL for production scale
+- **Database** — Powered by Supabase PostgreSQL for production-ready scalability.
 
 ## Deployment
 
