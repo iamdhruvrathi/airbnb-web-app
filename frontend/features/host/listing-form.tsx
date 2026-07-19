@@ -181,7 +181,7 @@ export function ListingForm({ listingId, defaultValues }: ListingFormProps) {
         </div>
       </div>
 
-      <Button type="submit" size="lg" disabled={createMutation.isPending}>
+      <Button type="submit" size="lg" disabled={createMutation.isPending} className="w-full sm:w-auto bg-[#FF385C] hover:bg-[#D70466] text-white rounded-full px-8 font-semibold shadow-md">
         {createMutation.isPending ? "Saving..." : isEdit ? "Update listing" : "Create listing"}
       </Button>
     </form>

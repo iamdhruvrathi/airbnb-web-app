@@ -95,7 +95,7 @@ export function ListingGrid() {
           <p className="mt-2 text-neutral-500">Try adjusting your search or filters</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-x-6 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-3 lg:grid-cols-4">
           {listings.map((listing) => (
             <ListingCardItem key={listing.id} listing={listing} />
           ))}

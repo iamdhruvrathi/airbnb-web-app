@@ -46,7 +46,7 @@ export function HostDashboard() {
           <h1 className="text-3xl font-semibold">Host Dashboard</h1>
           <p className="text-neutral-500">Manage your listings and bookings</p>
         </div>
-        <Button asChild>
+        <Button asChild className="bg-[#FF385C] hover:bg-[#D70466] text-white shadow-md rounded-full px-6 font-semibold">
           <Link href="/host/listings/new">Create listing</Link>
         </Button>
       </div>

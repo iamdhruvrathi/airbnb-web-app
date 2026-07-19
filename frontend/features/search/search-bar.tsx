@@ -62,9 +62,9 @@ export function SearchBar({ compact = false }: SearchBarProps) {
   }
 
   return (
-    <div id="hero-search" className={cn("mx-auto w-full max-w-4xl rounded-3xl md:rounded-full border border-neutral-300 bg-white p-5 md:p-2 shadow-lg dark:border-neutral-700 dark:bg-neutral-900", compact && "shadow-sm")}>
-      <div className="grid gap-4 md:grid-cols-[2fr_2fr_1fr_auto] md:items-center md:gap-0">
-        <div className="border-b border-neutral-200 pb-3 md:border-b-0 md:border-r md:px-4 md:pb-0 md:py-2 dark:border-neutral-700">
+    <div id="hero-search" className={cn("mx-auto w-full max-w-4xl rounded-3xl md:rounded-full border border-neutral-300 bg-white p-4 md:p-2 shadow-lg dark:border-neutral-700 dark:bg-neutral-900", compact && "shadow-sm")}>
+      <div className="flex flex-col gap-3 md:grid md:grid-cols-[2fr_2fr_1fr_auto] md:items-center md:gap-0">
+        <div className="border-b border-neutral-200 pb-2 md:border-b-0 md:border-r md:px-4 md:pb-0 md:py-2 dark:border-neutral-700">
           <label className="block text-xs font-semibold">Location</label>
           <Input
             value={location}
@@ -73,7 +73,7 @@ export function SearchBar({ compact = false }: SearchBarProps) {
             className="border-0 bg-transparent p-0 shadow-none focus-visible:ring-0"
           />
         </div>
-        <div className="border-b border-neutral-200 pb-3 md:border-b-0 md:border-r md:px-4 md:pb-0 md:py-2 dark:border-neutral-700">
+        <div className="border-b border-neutral-200 pb-2 md:border-b-0 md:border-r md:px-4 md:pb-0 md:py-2 dark:border-neutral-700">
           <Popover>
             <PopoverTrigger asChild>
               <button className="w-full text-left bg-transparent border-0 p-0 flex flex-col justify-center h-full">
@@ -97,7 +97,7 @@ export function SearchBar({ compact = false }: SearchBarProps) {
             </PopoverContent>
           </Popover>
         </div>
-        <div className="pb-3 md:px-4 md:pb-0 md:py-2">
+        <div className="pb-2 md:px-4 md:pb-0 md:py-2">
           <label className="block text-xs font-semibold">Guests</label>
           <Input
             type="number"

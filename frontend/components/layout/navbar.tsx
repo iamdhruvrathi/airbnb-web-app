@@ -74,7 +74,7 @@ export function Navbar() {
             {menuOpen && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
-                <div className="absolute right-0 z-50 mt-2 w-72 max-h-[80vh] overflow-y-auto rounded-2xl border border-neutral-200 bg-white py-2 shadow-xl dark:border-neutral-800 dark:bg-neutral-950">
+                <div className="absolute right-0 z-50 mt-2 w-72 max-h-[80vh] overflow-y-auto rounded-2xl border border-neutral-200 bg-white py-2 shadow-xl animate-in fade-in zoom-in-95 duration-200 dark:border-neutral-800 dark:bg-neutral-950">
                   {user && (
                     <div className="border-b border-neutral-200 px-4 py-3 dark:border-neutral-800">
                       <p className="font-semibold">{user.name}</p>

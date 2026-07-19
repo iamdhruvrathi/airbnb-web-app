@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Airbnb Clone",
-    template: "%s | Airbnb Clone",
+    default: "Airbnb Web App",
+    template: "%s | Airbnb Web App",
   },
   description: "A production-quality Airbnb clone for browsing, booking, and hosting stays.",
 };
