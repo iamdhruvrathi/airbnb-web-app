@@ -1,151 +1,122 @@
-# Airbnb Clone
+# Airbnb Web App
 
-A production-quality fullstack Airbnb clone built with **Next.js 15**, **FastAPI**, and **Supabase PostgreSQL**. Browse listings, search with filters, book stays, manage host listings, and save favorites — all with an Airbnb-inspired UI.
+A production-quality fullstack Airbnb clone built with **Next.js 15**, **FastAPI**, and **Supabase PostgreSQL**. This application allows users to browse listings, search with advanced filters, book stays, manage host listings, and save favorites—all wrapped in a beautifully polished, modern UI inspired by Airbnb.
 
-![Tech Stack](https://img.shields.io/badge/Next.js-15-black) ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Python](https://img.shields.io/badge/Python-3.12-yellow) ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E)
+![Next.js](https://img.shields.io/badge/Next.js-15-black) ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688) ![TypeScript](https://img.shields.io/badge/TypeScript-5-blue) ![Python](https://img.shields.io/badge/Python-3.12-yellow) ![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E) ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC)
 
-## Live Demo
+## 🌟 Live Demo
 
-> Deploy frontend to **Vercel** and backend to **Render/Railway**. Update these links after deployment:
->
-> - **App**: `https://your-app.vercel.app`
-> - **API**: `https://your-api.onrender.com`
+> **App**: [https://airbnb-web-app.vercel.app](https://airbnb-web-app.vercel.app) (Update link after deployment)  
+> **API**: [https://airbnb-api.onrender.com/docs](https://airbnb-api.onrender.com/docs) (Update link after deployment)
 
-## Features
+## 📸 Screenshots
 
-- **Home & Search** — Listing grid, search bar (location, dates, guests), category filters, price/bedroom filters, pagination
-- **Listing Detail** — Photo gallery, amenities, host info, static map, reviews, booking widget with price breakdown
-- **Booking Flow** — Date validation, unavailable date blocking, mock checkout, My Trips, cancel bookings
-- **Host Dashboard** — CRUD listings, stats (earnings, bookings, ratings), recent bookings
-- **Wishlist** — Save/remove favorites with persistence
-- **Reviews** — Leave reviews on completed/confirmed stays (bonus)
-- **Dark Mode** — System-aware theme toggle (bonus)
-- **Responsive** — Mobile, tablet, and desktop layouts (bonus)
+*(Add screenshots here after deploying your application. Recommended: Homepage, Search Results, Listing Details, and Host Dashboard).*
 
-## Tech Stack
+## ✨ Features
+
+### Guest Experience
+- **Home & Explore**: Dynamic listing grid with category rows, stunning responsive layout.
+- **Advanced Search**: Filter by location, dates, guests, property type, price range, and amenities.
+- **Listing Details**: High-quality photo gallery, amenity lists, host information, static maps, and reviews.
+- **Booking Flow**: Real-time date validation, blocking of unavailable dates, and a simulated checkout process.
+- **Trips & Wishlists**: View upcoming trips, cancel bookings, and save/remove favorite listings persistently.
+- **Reviews**: Leave feedback on completed stays.
+
+### Host Experience
+- **Host Dashboard**: View key statistics including total earnings, active listings, and recent bookings.
+- **Listing Management**: Complete CRUD operations for your properties.
+- **Image Uploads**: Integrated image upload capabilities for listing galleries.
+
+### Technical & UI/UX
+- **Google OAuth Authentication**: Secure login flow using Supabase Auth.
+- **Responsive Design**: Flawlessly optimized across mobile, tablet, and desktop viewports.
+- **Dark Mode**: System-aware theme toggle for comfortable browsing.
+- **Micro-Animations**: Smooth entry animations, hover states, and dynamic transitions.
+
+## 💻 Tech Stack
 
 | Layer | Technologies |
 |-------|-------------|
-| Frontend | Next.js 15, TypeScript, TailwindCSS, shadcn/ui, React Query, React Hook Form, Zod, Axios |
-| Backend | FastAPI, SQLAlchemy 2, Pydantic, Alembic, Python 3.12 |
-| Database | Supabase PostgreSQL |
-| Auth | Mock (user switcher + `X-User-Id` header) |
-| Payments | Mock checkout dialog |
-| Maps | Static OpenStreetMap image |
+| **Frontend** | Next.js 15 (App Router), TypeScript, Tailwind CSS, shadcn/ui, React Query, React Hook Form, Zod |
+| **Backend** | FastAPI, SQLAlchemy 2, Pydantic, Alembic, Python 3.12 |
+| **Database** | PostgreSQL (hosted on Supabase) |
+| **Auth** | Supabase Auth (Google OAuth) |
+| **Media** | Cloudinary (for image uploads) |
 
-## Quick Start
+## 🏗 Architecture Overview
 
-See **[docs/SETUP.md](docs/SETUP.md)** for full installation instructions.
+The system operates as a decoupled monorepo:
+- **Frontend**: A Next.js application handling UI, routing, and state management via React Query.
+- **Backend**: A high-performance FastAPI service providing a REST API (`/api/v1`).
+- **Database**: Supabase PostgreSQL stores all application data, communicating via SQLAlchemy ORM.
 
-```bash
-# Backend
-cd backend
-python -m venv .venv && .venv\Scripts\activate   # Windows
-pip install -r requirements.txt
-cp .env.example .env  # Add your DATABASE_URL (Supabase Postgres)
-alembic upgrade head
-python seed_db.py
-uvicorn app.main:app --reload --port 8000
+For a deep dive into the system design, routing, state management, and database schema, please refer to the **[ARCHITECTURE.md](ARCHITECTURE.md)** file.
 
-# Frontend (new terminal)
-cd frontend
-npm install
-cp .env.example .env.local
-npm run dev
-```
+## 🚀 Quick Start
 
-Open http://localhost:3000 — switch users from the avatar menu (top-right).
+To get the project up and running locally, please follow the comprehensive instructions in **[SETUP.md](SETUP.md)**. 
 
-## Architecture
+### Prerequisites
+- Node.js 20+
+- Python 3.12+
+- Supabase Account
+- Google Cloud Console Account (for OAuth)
 
-See **[docs/ARCH.md](docs/ARCH.md)** for the complete system design including:
-
-- Folder structure and layer responsibilities
-- Database schema and relationships
-- API endpoints
-- Request lifecycles (search, booking, CRUD)
-- State management and validation
-- Deployment guide
-
-## Database Schema
-
-```
-users ──< listings ──< listing_images
-  │         ├──< listing_amenities >── amenities
-  │         ├──< bookings
-  │         ├──< reviews
-  │         └──< wishlist_items
-  ├──< bookings (guest)
-  └──< wishlist_items
-```
-
-Key relationships:
-- **User** (guest/host) owns **Listings** and makes **Bookings**
-- **Bookings** block listing availability for overlapping date ranges
-- **Reviews** link to listings and optionally to bookings
-- **WishlistItems** unique per user + listing
-
-## API Overview
-
-Base URL: `http://localhost:8000/api/v1`
-
-| Endpoint | Description |
-|----------|-------------|
-| `GET /listings` | Search with filters + pagination |
-| `GET /listings/{id}` | Listing detail |
-| `POST /bookings` | Create booking |
-| `GET /bookings/me` | My trips |
-| `GET /host/dashboard` | Host stats |
-| `POST /listings` | Create listing (host) |
-| `POST /wishlist/{id}/toggle` | Toggle favorite |
-
-Full interactive docs: http://localhost:8000/docs
-
-## Project Structure
+## 📂 Project Structure
 
 ```
 airbnb-web-app/
-├── frontend/          # Next.js App Router
-│   ├── app/           # Routes (thin pages)
-│   ├── components/    # Layout + UI primitives
-│   ├── features/      # Feature-based modules
-│   ├── services/      # API client
-│   └── types/         # Shared TypeScript types
-├── backend/           # FastAPI
-│   └── app/
-│       ├── api/       # Route handlers
-│       ├── models/    # SQLAlchemy models
-│       ├── schemas/   # Pydantic DTOs
-│       ├── services/  # Business logic
-│       └── repositories/  # Data access
-└── docs/
-    ├── ARCH.md        # Architecture reference
-    └── SETUP.md       # Setup instructions
+├── frontend/             # Next.js Application
+│   ├── app/              # App Router pages and layouts
+│   ├── components/       # Shared UI primitives (shadcn) and layout components
+│   ├── features/         # Domain-specific modules (auth, listings, search, etc.)
+│   ├── services/         # API client configurations (Axios)
+│   └── types/            # TypeScript interfaces mirroring backend schemas
+├── backend/              # FastAPI Server
+│   ├── app/
+│   │   ├── api/          # Route handlers (Controllers)
+│   │   ├── core/         # Core configuration and dependencies
+│   │   ├── models/       # SQLAlchemy ORM models
+│   │   ├── repositories/ # Data access layer
+│   │   ├── schemas/      # Pydantic DTOs for validation
+│   │   └── services/     # Business logic layer
+│   ├── alembic/          # Database migrations
+│   └── seed_db.py        # Database seeding script
+├── ARCHITECTURE.md       # Detailed system design documentation
+├── SETUP.md              # Local installation and configuration guide
+└── README.md             # Project overview (this file)
 ```
 
-## Assumptions
+## 🌍 Environment Variables
 
-- **No real authentication** — demo users are pre-seeded; switch via UI menu
-- **No real payments** — checkout is a confirmation dialog
-- **Images via Cloudinary** — fast and optimized image delivery
-- **Static maps** — OpenStreetMap static image, not interactive
-- **Database** — Powered by Supabase PostgreSQL for production-ready scalability.
+You will need to configure environment variables for both the frontend and backend. See **[SETUP.md](SETUP.md)** for detailed `.env` templates, which include:
+- `DATABASE_URL` (Supabase Postgres connection string)
+- `NEXT_PUBLIC_SUPABASE_URL` & `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Cloudinary keys (if configuring custom uploads)
 
-## Deployment
+## 🚢 Deployment
 
 ### Frontend (Vercel)
+1. Push your code to GitHub.
+2. Import the repository into Vercel, setting the Root Directory to `frontend`.
+3. Add the required environment variables (Supabase keys, Google OAuth callbacks, API URL).
+4. Deploy!
 
-1. Import repo, set root directory to `frontend`
-2. Add env: `NEXT_PUBLIC_API_URL=https://your-backend.onrender.com/api/v1`
-3. Deploy
+### Backend (Render / Railway)
+1. Create a new Web Service and link the GitHub repository.
+2. Set the Root Directory to `backend`.
+3. Build Command: `pip install -r requirements.txt && alembic upgrade head`
+4. Start Command: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+5. Ensure `CORS_ORIGINS` includes your Vercel frontend URL.
 
-### Backend (Render)
+## 🔮 Future Improvements
 
-1. Use `backend/render.yaml` or create a Web Service
-2. Build: `pip install -r requirements.txt && python seed_db.py`
-3. Start: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
-4. Set `CORS_ORIGINS` to your Vercel domain
+- **Stripe Integration**: Replace the mock checkout dialog with actual payment processing.
+- **Interactive Maps**: Transition from static maps to interactive Google Maps / Mapbox.
+- **Real-time Notifications**: Implement WebSockets to notify hosts of new bookings instantly.
+- **Advanced Search**: Integrate Elasticsearch or Typesense for typo-tolerant, geospatial search capabilities.
 
-## License
+## 📜 License
 
-Built as a fullstack assignment project. For educational purposes.
+Built as an educational fullstack assignment project. All rights reserved.

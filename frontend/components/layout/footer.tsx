@@ -6,12 +6,12 @@ export function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col md:flex-row items-center justify-between gap-4 px-4 py-8 md:px-6">
         <div className="flex flex-col md:flex-row items-center gap-2 md:gap-6 text-sm text-neutral-500">
           <p>© 2026 Airbnb Web App. All rights reserved.</p>
+          <p>Developed by Dhruv Rathi</p>
           <div className="flex items-center gap-4 mt-2 md:mt-0">
             <Link href="#" className="hover:underline">Privacy Policy</Link>
             <Link href="#" className="hover:underline">Terms</Link>
-            <Link href="#" className="hover:underline">About</Link>
-            <Link href="#" className="hover:underline">Contact</Link>
-            <Link href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:underline">GitHub</Link>
+            <Link href="mailto:dhruv2005rathi@gmail.com" className="hover:underline">Contact</Link>
+            <Link href="https://github.com/iamdhruvrathi/airbnb-web-app" target="_blank" rel="noopener noreferrer" className="hover:underline">GitHub</Link>
           </div>
         </div>
       </div>
