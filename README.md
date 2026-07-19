@@ -6,8 +6,8 @@ A production-quality fullstack Airbnb clone built with **Next.js 15**, **FastAPI
 
 ## 🌟 Live Demo
 
-> **App**: [https://airbnb-web-app.vercel.app](https://airbnb-web-app.vercel.app) (Update link after deployment)  
-> **API**: [https://airbnb-api.onrender.com/docs](https://airbnb-api.onrender.com/docs) (Update link after deployment)
+> **App**: [https://airbnb-web-app.vercel.app](https://airbnb-web-app.vercel.app)
+> **API**: [https://airbnb-api.onrender.com/docs](https://airbnb-api.onrender.com/docs)
 
 ## ✨ Features
 
